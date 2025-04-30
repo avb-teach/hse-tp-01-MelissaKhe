@@ -1,6 +1,6 @@
 #!/bin/bash
 
-max_depth=${3:--1}
+max_depth=${4:--1}
 input="$1"
 output="$2"
 mkdir -p "$output"
@@ -12,16 +12,16 @@ copy_f() {
     local name="${base_name%.*}" # до точки
     local ext="${base_name##*.}" # после точки
     local counter=1
-    local name="$base_name"
-    while [ -e "$fin/$name" ]; do
+    local new="$base_name"
+    while [ -e "$fin/$new" ]; do
         if [ "$ext" = "$base_name" ]; then
-            name="${name}_${counter}" #без расширения
+            new="${name}_${counter}" #без расширения
         else
-            name="${name}_${counter}.${ext}"
+            new="${name}_${counter}.${ext}"
         fi
         counter=$((counter + 1))
     done
-    cp "$1" "$fin/$name"
+    cp "$1" "$fin/$new"
 }
 
 
@@ -47,6 +47,9 @@ funct() {
     local last="$4"
     local very_last="$5"
     local flag="0"
+    local new_path
+    local new_path1
+    local new_path2
     for f in "$cur_input"/*; do
         if [ -f "$f" ]; then
             copy_f "$f" "$cur_output"
@@ -55,7 +58,7 @@ funct() {
                 new_path="$(copy_dir "$cur_output" "$f")"
                 funct "$f" $((depth + 1)) "$new_path" "$cur_output" "$last"
             elif [ "$flag" -eq 0 ]; then
-                local new_path2="$(copy_dir "$very_last" "$cur_output")"
+                new_path2="$(copy_dir "$very_last" "$cur_output")"
                 new_path1="$(copy_dir "$new_path2" "$f")"
                 funct "$f" $((depth)) "$new_path1" "$cur_output" "$very_last"
                 flag="1"
