@@ -35,4 +35,4 @@ funct() {
     done
 }
 
-main "$input" 0
+funct "$input" 0
