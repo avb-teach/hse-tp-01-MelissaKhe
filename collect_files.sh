@@ -1,11 +1,6 @@
 #!/bin/bash
 
-max_depth=-1
-if [ "$1" = "--max_depth" ]; then
-    max_depth="$2"
-    shift 2
-fi
-
+max_depth="$3"
 input="$1"
 output="$2"
 mkdir -p "$output"
@@ -27,14 +22,14 @@ copy() {
     cp "$1" "$2/$new"
 }
 
-main() {
+funct() {
     local depth="$2"
     for f in "$1"/*; do
         if [ -f "$f" ]; then
             copy "$f" "$output"
         elif [ -d "$f" ]; then
             if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$max_depth" ]; then
-                main "$f" $((depth + 1))
+                funct "$f" $((depth + 1))
             fi
         fi
     done
