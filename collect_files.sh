@@ -70,4 +70,4 @@ funct() {
     done
 }
 
-funct "$input" 1 "$output" "$output" "$output"
+funct "$input" 1 "$output" "$output/.." "$output/../.."
