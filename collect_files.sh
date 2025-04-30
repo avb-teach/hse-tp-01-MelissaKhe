@@ -12,50 +12,54 @@ copy_f() {
     local name="${base_name%.*}" # до точки
     local ext="${base_name##*.}" # после точки
     local counter=1
-    local new="$base_name"
-    while [ -e "$fin/$new" ]; do
+    local name="$base_name"
+    while [ -e "$fin/$name" ]; do
         if [ "$ext" = "$base_name" ]; then
-            new="${name}_${counter}" #без расширения
+            name="${name}_${counter}" #без расширения
         else
-            new="${name}_${counter}.${ext}"
+            name="${name}_${counter}.${ext}"
         fi
         counter=$((counter + 1))
     done
-    cp "$1" "$fin/$new"
+    cp "$1" "$fin/$name"
 }
 
 
 
 copy_dir() {
-    local path_anc="$1"
-    local path_current_dir="$2"
-    local base_name="$(basename "$path_current_dir")"
+    local cur_dir="$1"
+    local new_dir="$2"
+    local base_name="$(basename "$new_dir")"
     local counter=1
-    local new="$base_name"
-    while [ -e "$path_anc/$new" ]; do
-        new="${base_name}_${counter}"
+    local name="$base_name"
+    while [ -e "$cur_dir/$name" ]; do
+        name="${base_name}_${counter}"
         counter=$((counter + 1))
     done
-    mkdir "$path_anc/$new"
-    echo "$path_anc/$new"
+    mkdir "$cur_dir/$name"
+    echo "$cur_dir/$name"
 }
 
 funct() {
-    local path_input="$1"
+    local cur_input="$1"
     local depth="$2"
-    local path_anc_output="$3"
-    for f in "$path_input"/*; do
+    local cur_output="$3"
+    local last="$4"
+    local very_last="$5"
+    for f in "$cur_input"/*; do
         if [ -f "$f" ]; then
-            copy_f "$f" "$path_anc_output"
+            copy_f "$f" "$cur_output"
         elif [ -d "$f" ]; then
-            if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$max_depth" ]; then
-                funct "$f" $((depth + 1)) "$(copy_dir "$path_anc_output" "$f")"
-            elif [ "$depth" -eq "$max_depth" ]; then
-                ssss="$(copy_dir "$path_anc_output" "$f")"
-                funct "$f" $depth "$(copy_dir "$ssss" "$f")" 
+            if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$((max_depth-0))" ]; then
+                new_path="$(copy_dir "$cur_output" "$f")"
+                funct "$f" $((depth + 1)) "$new_path" "$cur_output" "$last"
+            else 
+                new_path="$(copy_dir "$very_last" "$cur_output")"
+                new_path="$(copy_dir "$new_path" "$f")"
+                funct "$f" $((depth)) "$new_path" "$cur_output" "$very_last"
             fi
         fi
     done
 }
 
-funct "$input" 1 "$output"
+funct "$input" 1 "$output" "$output" "$output"
