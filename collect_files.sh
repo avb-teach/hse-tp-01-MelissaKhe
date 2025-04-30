@@ -1,6 +1,6 @@
 #!/bin/bash
 
-max_depth="$3"
+max_depth=-1
 input="$1"
 output="$2"
 mkdir -p "$output"
