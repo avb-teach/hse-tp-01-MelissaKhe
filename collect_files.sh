@@ -46,17 +46,22 @@ funct() {
     local cur_output="$3"
     local last="$4"
     local very_last="$5"
+    local flag="0"
     for f in "$cur_input"/*; do
         if [ -f "$f" ]; then
             copy_f "$f" "$cur_output"
         elif [ -d "$f" ]; then
-            if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$((max_depth-0))" ]; then
+            if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$((max_depth))" ]; then
                 new_path="$(copy_dir "$cur_output" "$f")"
                 funct "$f" $((depth + 1)) "$new_path" "$cur_output" "$last"
+            elif [ "$flag" -eq 0 ]; then
+                local new_path2="$(copy_dir "$very_last" "$cur_output")"
+                new_path1="$(copy_dir "$new_path2" "$f")"
+                funct "$f" $((depth)) "$new_path1" "$cur_output" "$very_last"
+                flag="1"
             else 
-                new_path="$(copy_dir "$very_last" "$cur_output")"
-                new_path="$(copy_dir "$new_path" "$f")"
-                funct "$f" $((depth)) "$new_path" "$cur_output" "$very_last"
+                new_path1="$(copy_dir "$new_path2" "$f")"
+                funct "$f" $((depth)) "$new_path1" "$cur_output" "$very_last"
             fi
         fi
     done
