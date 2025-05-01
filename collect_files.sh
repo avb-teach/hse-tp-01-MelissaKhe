@@ -120,3 +120,5 @@ elif [ "$max_depth" -eq 2 ]; then
 else
     funct "$input" 1 ""  
 fi
+
+find "$output" -type d -empty -delete
