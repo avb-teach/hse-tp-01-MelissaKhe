@@ -70,4 +70,41 @@ funct() {
     done
 }
 
-funct "$input" 1 "$output" "$output/.." "$output/../.."
+funct_level1() {
+    local cur_input="$1"
+    for f in "$cur_input"/*; do
+        if [ -f "$f" ]; then
+            copy_f "$f" "$output"
+        elif [ -d "$f" ]; then
+            funct_level1 "$f"
+        fi
+    done
+}
+
+funct_level2() {
+    local cur_input="$1"
+    local depth="$2"
+    local cur_output="$3"
+    local new_path
+    for f in "$cur_input"/*; do
+        if [ -f "$f" ]; then
+            copy_f "$f" "$cur_output"
+        elif [ -d "$f" ]; then
+            if [ "$depth" -eq 1 ]; then
+                cur_output="$(copy_dir "$output" "$f")"
+                funct_level2 "$f" $((depth + 1)) $cur_output
+            else 
+                cur_output="$(copy_dir "$output" "$f")"
+                funct_level2 "$f" $((depth)) $cur_output
+            fi
+        fi
+    done
+}
+
+if [ "$max_depth" -eq 1 ]; then
+    funct_level1 "$input"
+elif [ "$max_depth" -eq 2 ]; then
+    funct_level2 "$input" 1 "$output"
+else
+    funct "$input" 1 "$output" "$output/.." "$output/../.."  
+fi
