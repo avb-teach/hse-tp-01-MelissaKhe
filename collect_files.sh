@@ -57,13 +57,8 @@ funct() {
                 name="$(copy_dir "$output$rel_cur_output" "$f")"
                 funct "$f" $((depth + 1)) "$rel_cur_output/$name"
             elif [ "$flag" -eq 0 ]; then
-                echo "$f"
-                echo "$rel_cur_output"
-
                 second_out="${rel_cur_output#*/}"
-                echo "second_out without /=$second_out"
                 second_out="${second_out#*/}"
-                echo "second_out without first=$second_out"
                 if [[ "$second_out" == */* ]]; then
                     after_second="${second_out#*/}"
                     second_out="${second_out%%/*}"
@@ -73,9 +68,6 @@ funct() {
                     second_out="${second_out%%/*}"
                     new_path="/$(copy_dir "$output" "$second_out")"
                 fi
-                echo "second_out=$second_out"
-                echo "after_second=$after_second"
-                echo "new_path=$new_path"
                 flag="1"
 
                 name="$(basename "$f")"
