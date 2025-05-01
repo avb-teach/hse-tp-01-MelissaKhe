@@ -37,34 +37,54 @@ copy_dir() {
         counter=$((counter + 1))
     done
     mkdir "$cur_dir/$name"
-    echo "$cur_dir/$name"
+    echo "$name"
 }
 
 funct() {
-    local cur_input="$1"
+    local cur_input="$1" #input/a/b/c
     local depth="$2"
-    local cur_output="$3"
-    local last="$4"
-    local very_last="$5"
+    local rel_cur_output="$3" #/b/c
     local flag="0"
+    local name 
     local new_path
-    local new_path1
-    local new_path2
-    for f in "$cur_input"/*; do
+    local second_out # вторая часть (еще до удаления первой) относительного выходного пути с / до /
+    local after_second # с третьей части (еще до удаления первой) относительного выходного пути с / до /
+    for f in "$cur_input"/*; do # f с полным путем
         if [ -f "$f" ]; then
-            copy_f "$f" "$cur_output"
+            copy_f "$f" "$output$rel_cur_output"
         elif [ -d "$f" ]; then
             if [ "$max_depth" -eq -1 ] || [ "$depth" -lt "$((max_depth))" ]; then
-                new_path="$(copy_dir "$cur_output" "$f")"
-                funct "$f" $((depth + 1)) "$new_path" "$cur_output" "$last"
+                name="$(copy_dir "$output$rel_cur_output" "$f")"
+                funct "$f" $((depth + 1)) "$rel_cur_output/$name"
             elif [ "$flag" -eq 0 ]; then
-                new_path2="$(copy_dir "$very_last" "$cur_output")"
-                new_path1="$(copy_dir "$new_path2" "$f")"
-                funct "$f" $((depth)) "$new_path1" "$cur_output" "$very_last"
+                echo "$f"
+                echo "$rel_cur_output"
+
+                second_out="${rel_cur_output#*/}"
+                echo "second_out without /=$second_out"
+                second_out="${second_out#*/}"
+                echo "second_out without first=$second_out"
+                if [[ "$second_out" == */* ]]; then
+                    after_second="${second_out#*/}"
+                    second_out="${second_out%%/*}"
+                    new_path="/$(copy_dir "$output" "$second_out")/$after_second"
+                else
+                    after_second=""
+                    second_out="${second_out%%/*}"
+                    new_path="/$(copy_dir "$output" "$second_out")"
+                fi
+                echo "second_out=$second_out"
+                echo "after_second=$after_second"
+                echo "new_path=$new_path"
                 flag="1"
+
+                name="$(basename "$f")"
+                mkdir -p "$output$new_path/$name"
+                funct "$f" $((depth)) "$new_path/$name"
             else 
-                new_path1="$(copy_dir "$new_path2" "$f")"
-                funct "$f" $((depth)) "$new_path1" "$cur_output" "$very_last"
+                name="$(basename "$f")"
+                mkdir -p "$output$new_path/$name"
+                funct "$f" $((depth)) "$new_path/$name"
             fi
         fi
     done
@@ -91,11 +111,11 @@ funct_level2() {
             copy_f "$f" "$cur_output"
         elif [ -d "$f" ]; then
             if [ "$depth" -eq 1 ]; then
-                cur_output="$(copy_dir "$output" "$f")"
-                funct_level2 "$f" $((depth + 1)) $cur_output
+                cur_output="$output/$(copy_dir "$output" "$f")"
+                funct_level2 "$f" $((depth + 1)) "$cur_output"
             else 
-                cur_output="$(copy_dir "$output" "$f")"
-                funct_level2 "$f" $((depth)) $cur_output
+                cur_output="$output/$(copy_dir "$output" "$f")"
+                funct_level2 "$f" $((depth)) "$cur_output"
             fi
         fi
     done
@@ -106,5 +126,5 @@ if [ "$max_depth" -eq 1 ]; then
 elif [ "$max_depth" -eq 2 ]; then
     funct_level2 "$input" 1 "$output"
 else
-    funct "$input" 1 "$output" "$output/.." "$output/../.."  
+    funct "$input" 1 ""  
 fi
